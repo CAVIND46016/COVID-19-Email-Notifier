@@ -165,7 +165,7 @@ def main():
         content += '\n' + 'Mira-Bhayandar COVID19 Cases ( Location Not Accurate):' + '\n  ' + '\n  '.join(
             loc_value_sorted)
 
-        file_path_4 = join(TEMP_DIR, "MiraBhy.txt")
+        file_path_4 = join(TEMP_DIR, "mira_bhy.txt")
         with open(file_path_4, 'w', encoding='utf8') as file:
             file.write(content)
         log.info("mirabhy_stats generated.")
@@ -177,12 +177,13 @@ def main():
         WebDriverWait(driver, timeout=200).until(EC.presence_of_element_located((By.ID, "footer_row")))
         soup = BeautifulSoup(driver.page_source, "html.parser")
 
-        urls = []
+        pdf_link = None
         for a_tag in soup.find_all("a"):
-            if a_tag.find("i") and re.search(r'\d+$', a_tag['href'].strip()):
-                urls.append(a_tag['href'])
+            tag_text = re.sub(r' +', ' ', a_tag.text.strip())
+            if re.search(r'Covid([- ])19 Daily Report', tag_text) and 'list' not in tag_text.lower():
+                pdf_link = a_tag['href']
+                break
 
-        pdf_link = sorted(urls, key=lambda x: int(x.split('/')[-1]), reverse=True)[0]
         file_path_5 = join(TEMP_DIR, 'mbmc_covid_report.pdf')
         tmp_file = join(TEMP_DIR, 'covid.pdf')
 
@@ -195,19 +196,25 @@ def main():
             pdf_reader = PyPDF2.PdfFileReader(pdf_file)
             pdf_writer.addPage(pdf_reader.getPage(0))
             pdf_writer.write(pdf_output_file)
+        log.info("mbmc covid report generated.")
 
         log.info("Unpickling a random FAQ...")
         with open(join(DOCS_DIR, "covid_faq.pkl"), "rb") as pkl_file:
             faq = pickle.load(pkl_file)
 
         log.info("Sending an email...")
-        email_body = random.choice(faq) + "\n\n- Notification service designed by Cavin Dsouza\n" \
+        email_body = random.choice(faq) + "\n\nSources:\n• world_stats.csv - https://www.worldometers.info/coronavirus" \
+                                          "\n• usa_stats.csv - https://www.worldometers.info/coronavirus/country/us" \
+                                          "\n• india_stats.csv - https://www.mohfw.gov.in" \
+                                          "\n• mira_bhy.txt - https://bit.ly/MiraBhyCovid19" \
+                                          "\n• mbmc_covid_report.pdf - https://www.mbmc.gov.in" \
+                                          "\n\n- Notification service designed by Cavin Dsouza\n" \
                                           "© Copyright Worldometers.info - All rights reserved"
 
         send_email = Email(**EMAIL_CONNECTION_PARAMS)
         send_email.send(from_name='Worldometer',
                         to_address=['def@ghi.com'],
-                        bcc_address=['xyz@abc.com'],
+                        bcc_address=['xyz@mno.com'],
                         attachments=[file_path_1, file_path_2, file_path_3, file_path_4, file_path_5],
                         subject=title,
                         body=email_body)
