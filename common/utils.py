@@ -1,15 +1,41 @@
-import logging as log
-from datetime import datetime
-from os.path import join, basename, splitext
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-from settings import LOGS_DIR, PATH_TO_CHROME_DRIVER
+from settings import PATH_TO_CHROME_DRIVER
 
 
-def get_browser(extensions=False, notifications=False, incognito=False):
+def get_browser(
+    executable_path=PATH_TO_CHROME_DRIVER,
+    headless=False,
+    incognito=False,
+    sandbox=False,
+    extensions=False,
+    notifications=False,
+    dev_shm_usage=False,
+):
+    """
+    Creates and returns a Selenium WebDriver instance for Chrome.
+
+    :param executable_path: Path to the Chrome driver executable.
+    :param headless: Whether to run Chrome in headless mode (without GUI).
+    :param incognito: Whether to launch Chrome in incognito mode.
+    :param sandbox: Whether to disable the sandbox for Chrome.
+    :param extensions: Whether to disable Chrome extensions.
+    :param notifications: Whether to disable Chrome notifications.
+    :param dev_shm_usage: Whether to disable the use of /dev/shm for shared memory in Chrome.
+    :return: Selenium WebDriver instance for Chrome.
+    """
+
     chrome_options = Options()
-    chrome_options.add_argument("--headless")
+    if headless:
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+
+    if incognito:
+        chrome_options.add_argument("--incognito")
+
+    if not sandbox:
+        chrome_options.add_argument("--no-sandbox")
 
     if not extensions:
         chrome_options.add_argument("--disable-extensions")
@@ -17,35 +43,10 @@ def get_browser(extensions=False, notifications=False, incognito=False):
     if not notifications:
         chrome_options.add_argument("--disable-notifications")
 
-    if incognito:
-        chrome_options.add_argument("--incognito")
+    if not dev_shm_usage:
+        chrome_options.add_argument("--disable-dev-shm-usage")
 
-    driver = webdriver.Chrome(executable_path=PATH_TO_CHROME_DRIVER, options=chrome_options)
-    return driver
-
-
-def logger(log_file_name, suffix=None):
-    """
-    Args:
-    log_file_name<str>: Basename of the log file
-    suffix <str>: The suffix that is appended to the name of the log_file
-    """
-
-    suffix_dir = {'date': '%Y-%m-%d',
-                  'timestamp': '%Y-%m-%d_%H%M%S',
-                  'week_of_year': '%W',
-                  'day_of_year': "%j",
-                  'week_num': '%w'
-                  }
-    try:
-        append_str = f"_{datetime.now().strftime(suffix_dir[suffix])}"
-    except KeyError:
-        append_str = ""
-
-    log_file = join(LOGS_DIR, splitext(basename(log_file_name))[0] + append_str + '.log')
-    log.basicConfig(filename=log_file,
-                    filemode='a',
-                    level=log.INFO,
-                    format='%(asctime)s %(levelname)s : %(message)s',
-                    datefmt='%Y-%m-%d %I:%M:%S %p')
-    return log
+    return webdriver.Chrome(
+        executable_path=executable_path,
+        options=chrome_options
+    )
