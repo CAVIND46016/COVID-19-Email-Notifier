@@ -46,7 +46,4 @@ def get_browser(
     if not dev_shm_usage:
         chrome_options.add_argument("--disable-dev-shm-usage")
 
-    return webdriver.Chrome(
-        executable_path=executable_path,
-        options=chrome_options
-    )
+    return webdriver.Chrome(executable_path=executable_path, options=chrome_options)
