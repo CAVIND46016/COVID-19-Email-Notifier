@@ -7,5 +7,5 @@ EMAIL_CONNECTION_PARAMS = {
     "port": 587,
     "user": "mnop@gmail.com",
     "password": "xxxxxxxxxx",
-    "use_tls": True
+    "use_tls": True,
 }
