@@ -10,11 +10,7 @@ import pandas as pd
 from common import Email, get_browser, get_custom_logger
 from settings import TEMP_DIR, DOCS_DIR
 
-logger = get_custom_logger(
-    level="INFO",
-    stream_fmt="color",
-    filename="covid_scraper.log"
-)
+logger = get_custom_logger(level="INFO", stream_fmt="color", filename="covid_scraper.log")
 
 
 def main():
@@ -42,12 +38,7 @@ def main():
         title = soup.find("title").text.strip()
 
         table_val = [[] for _ in range(14)]
-        table_body = soup.find(
-            "table",
-            attrs={
-                "id": "main_table_countries_today"
-            }
-        ).find("tbody")
+        table_body = soup.find("table", attrs={"id": "main_table_countries_today"}).find("tbody")
         tr_items = table_body.find_all("tr")
 
         for tr in tr_items:
@@ -70,7 +61,7 @@ def main():
                 "deaths_per_1M_pop": table_val[10],
                 "total_tests": table_val[11],
                 "tests_per_1M_pop": table_val[12],
-                "population": table_val[13]
+                "population": table_val[13],
             }
         )
 
@@ -96,12 +87,7 @@ def main():
         soup = BeautifulSoup(driver.page_source, "html.parser")
 
         table_val = [[] for _ in range(11)]
-        table_body = soup.find(
-            "table",
-            attrs={
-                "id": "usa_table_countries_today"
-            }
-        ).find("tbody")
+        table_body = soup.find("table", attrs={"id": "usa_table_countries_today"}).find("tbody")
         tr_items = table_body.find_all("tr")
 
         for tr in tr_items:
@@ -133,13 +119,16 @@ def main():
             faq = pickle.load(pkl_file)
 
         logger.info("Sending an email...")
-        email_body = random.choice(faq) + "\n\nSources:\n• world_stats.csv - https://www.worldometers.info/coronavirus" \
-                                          "\n• usa_stats.csv - https://www.worldometers.info/coronavirus/country/us" \
-                                          "\n• india_stats.csv - https://www.mohfw.gov.in" \
-                                          "\n• mira_bhy.txt - https://bit.ly/MiraBhyCovid19" \
-                                          "\n• mbmc_covid_report.pdf - https://www.mbmc.gov.in" \
-                                          "\n\n- Notification service designed by Cavin Dsouza\n" \
-                                          "© Copyright Worldometers.info - All rights reserved"
+        email_body = (
+            random.choice(faq)
+            + "\n\nSources:\n• world_stats.csv - https://www.worldometers.info/coronavirus"
+            "\n• usa_stats.csv - https://www.worldometers.info/coronavirus/country/us"
+            "\n• india_stats.csv - https://www.mohfw.gov.in"
+            "\n• mira_bhy.txt - https://bit.ly/MiraBhyCovid19"
+            "\n• mbmc_covid_report.pdf - https://www.mbmc.gov.in"
+            "\n\n- Notification service designed by Cavin Dsouza\n"
+            "© Copyright Worldometers.info - All rights reserved"
+        )
 
         send_email = Email()
         send_email.send(
@@ -151,7 +140,7 @@ def main():
                 file_path_2,
             ],
             subject=title,
-            body=email_body
+            body=email_body,
         )
     except Exception as ex:
         logger.error("<%s>: %s", type(ex).__name__, ex, exc_info=True)
